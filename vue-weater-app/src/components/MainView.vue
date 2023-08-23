@@ -2,8 +2,8 @@
 	<div class="leftContainer">
 		<div id="cityNameBox">
 			<div class="cityName">
-				<p>San Fransico</p>
-				<p>Jan 28</p>
+				<p>{{ cityName }}</p>
+				<p>{{ currentTime }}</p>
 			</div>
 		</div>
 		<div id="contentsBox">
@@ -15,7 +15,7 @@
 			</div>
 			<div class="weatherBox">
 				<div class="wertherDegree">
-					<p>10&deg;</p>
+					<p>{{ currentTemp }}&deg;</p>
 				</div>
 				<div class="weatherIcon">
 					<img src="@/assets/43.png" alt="MainLogo">
@@ -35,16 +35,16 @@
 				<p>이번주 날씨 보기</p>
 			</div>
 			<div class="timelyWeatherBox">
-				<div class="timelyWeather">
+				<div class="timelyWeather" v-for="(temp, index) in arrayTemps" :key="index">
 					<div class="icon">
 						<img src="@/assets/29.png" alt="#">
 					</div>
 					<div class="data">
-					<p class="time">2pm</p>
-					<p class="currentDegree">32&deg;</p>
+					<p class="time">{{ Unix_timestemp(temp.dt) }}</p>
+					<p class="currentDegree">{{ Math.round(temp.temp) }}&deg;</p>
 					<div>
 						<img src="@/assets/drop.png" alt="#">
-						<p class="fall">15%</p>
+						<p class="fall">{{ temp.humidity }}%</p>
 					</div>
 				</div>
 				</div>
@@ -62,10 +62,23 @@
 
 <script>
 import axios from 'axios';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko'
+dayjs.locale("ko");
 
 export default {
 	data() {
 		return {
+			//현재 시간을 나타내기 위한 Day.js 플러그인 사용
+			currentTime: dayjs().format("YYYY, MM, DD ddd"),
+			//현재 시간에 따른 온도 데이터
+			currentTemp: '',
+
+			//상세 날씨 데이터를 받아주는 데이터 할당
+			arrayTemps: [],
+			icons: [],
+			cityName: "",
+
 			//임시데이터
 			TemporaryData: [
 				{
@@ -77,7 +90,7 @@ export default {
 					value: "10m/s"
 				},
 				{
-					title: '풍향',
+					title: '체감온도',
 					value: "WS"
 				}
 			]
@@ -85,22 +98,44 @@ export default {
 	},
 	created() {
 		//초기화하여 선언을 위한 코드 작성
-		//https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&exclude={part}&appid={API key}
-		const API_KEY = "076de31684bb1eaa64e1434aa8368b32";
+		//https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={API key}
+		const API_KEY = "6d33883aede182590de63214808976ce";
 		let initialLat = 37.566826,
 			initialLon = 126.9786567;
 
 		//get() 메서드를 통해서 우리가 필요로하는 API 데이터를 호출한다.
 		axios
-		.get(`https://api.openweathermap.org/data/3.0/onecall?lat=${initialLat}&lon=${initialLon}&appid=${API_KEY}`)
+		.get(`https://api.openweathermap.org/data/3.0/onecall?lat=${initialLat}&lon=${initialLon}&appid=${API_KEY}&units=metric`)
 		.then(response => {
 			console.log(response)
-			console.log(initialLat)
-			console.log(initialLon)
+
+			let initialCityName = response.data.timezone;
+			let initialCurrentData = response.data.current;
+
+			this.cityName = initialCityName.split("/")[1]; // ['asia', 'seoul']
+
+			this.currentTemp = Math.round(initialCurrentData.temp); // 온도
+			this.TemporaryData[0].value = initialCurrentData.humidity + "%"; // 습도
+			this.TemporaryData[1].value = Math.round(initialCurrentData.wind_speed) + "m/s" // 풍속
+			this.TemporaryData[2].value = Math.round(initialCurrentData.feels_like) + "도" // 체감온도
+
+			//시간대별 날시 데이터를 제어
+			// this.arrayTemps = response.data.hourly;
+			// 24시간 데이터만 활용
+			for(let i = 0; i < 24; i++) {
+				this.arrayTemps[i] = response.data.hourly[i];
+			}
 		})
 		.catch(error => {
 			console.log(error)
 		})
+	},
+	methods: {
+		Unix_timestemp(dt) {
+			let date = new Date(dt * 1000);
+			let hour = "0" + date.getHours();
+			return hour.substr(-2) + "시";
+		}
 	}
 }
 </script>
@@ -289,13 +324,28 @@ export default {
 			width: calc(100% - 70px);
 			height: 65%;
 			padding: 0 30px;
+			overflow: scroll;
+
+			-ms-overflow-style: none; //IE and Edge
+			scrollbar-width: none; // Firefox
+			
+			&::-webkit-scrollbar {
+				//chrome, Safari, Opera
+				display: none;
+			}
 
 			.timelyWeather {
 				display: flex;
 				width: 126px;
+				min-width: 126px;
 				height: 70px;
 				background-color: #0989ff;
 				border-radius: 20px;
+				margin-left: 15px;
+
+				&:first-child {
+					margin-left: 0;
+				}
 
 				.icon {
 					@include center;
