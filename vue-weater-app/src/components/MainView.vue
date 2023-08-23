@@ -107,7 +107,6 @@ export default {
 		axios
 		.get(`https://api.openweathermap.org/data/3.0/onecall?lat=${initialLat}&lon=${initialLon}&appid=${API_KEY}&units=metric`)
 		.then(response => {
-			console.log(response)
 
 			let initialCityName = response.data.timezone;
 			let initialCurrentData = response.data.current;
@@ -346,6 +345,7 @@ export default {
 				&:first-child {
 					margin-left: 0;
 				}
+
 
 				.icon {
 					@include center;
