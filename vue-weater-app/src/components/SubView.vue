@@ -66,7 +66,7 @@ export default {
         //타임스탬프로 변환
         const Unix_timestemp = (dt) => {
             let date = new Date(dt * 1000);
-            let hour = "0"  + date.getHours();
+            let hour = "0"  + date.getHours().toString().padStart(2, "0");
             return hour.substring(-2) + "시";
         }
 
@@ -88,14 +88,25 @@ export default {
                     isTimeOfSunSet = isInitialData.sunset, //일몰시간 데이터
                     isLineOfSight = isInitialData.visibility; // 가시거리 데이터
 
-                if(isFeelLikeTemp > 30) feelingText.value = "매우 더움";
-                if(isFeelLikeTemp <= 30) feelingText.value = "더움";
-                if(isFeelLikeTemp <= 23) feelingText.value = "보통";
-                if(isFeelLikeTemp <= 17) feelingText.value = "선선함";
-                if(isFeelLikeTemp <= 10) feelingText.value = "쌀쌀함";
-                if(isFeelLikeTemp <= 4) feelingText.value = "추움";
-                if(isFeelLikeTemp <= -10) feelingText.value = "매우추움";
+                // if(isFeelLikeTemp > 30) feelingText.value = "매우 더움";
+                // if(isFeelLikeTemp <= 30) feelingText.value = "더움";
+                // if(isFeelLikeTemp <= 23) feelingText.value = "보통";
+                // if(isFeelLikeTemp <= 17) feelingText.value = "선선함";
+                // if(isFeelLikeTemp <= 10) feelingText.value = "쌀쌀함";
+                // if(isFeelLikeTemp <= 4) feelingText.value = "추움";
+                // if(isFeelLikeTemp <= -10) feelingText.value = "매우추움";
 
+                const tempPoints = [0, 10, 15, 20, 25, 30];
+                const lavels = ["매우추움", "추움", "쌀쌀함", "선선함", "보통", "더움", "매우더움"];
+
+                let index = 0;
+
+                for(const point of tempPoints) {
+                    if(isFeelLikeTemp <= point) break;
+                    index++;
+                }
+                
+                feelingText.value = lavels[index];
 
 
 
