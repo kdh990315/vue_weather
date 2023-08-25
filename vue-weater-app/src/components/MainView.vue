@@ -18,7 +18,7 @@
 					<p>{{ currentTemp }}&deg;</p>
 				</div>
 				<div class="weatherIcon">
-					<img src="@/assets/images/43.png" alt="MainLogo">
+                    <img :src="images[0]" alt="MainLogo" />
 				</div>
 				<div class="weatherData">
 					<div v-for="Temporary in TemporaryData" :key="Temporary.title" class="detailData">
@@ -37,7 +37,7 @@
 			<div class="timelyWeatherBox">
 				<div class="timelyWeather" v-for="(temp, index) in arrayTemps" :key="index">
 					<div class="icon">
-						<img src="@/assets/images/29.png" alt="#">
+						<img src="@/assets/images/11n.png" alt="#">
 					</div>
 					<div class="data">
 						<p class="time">{{ Unix_timestemp(temp.dt) }}</p>
@@ -61,7 +61,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko'
 dayjs.locale("ko");
@@ -85,7 +84,7 @@ export default {
 		this.TemporaryData[1].value = currentWindSpeed + "m/s";
 		this.TemporaryData[2].value = currentFeelsLike + "도";
 		this.arrayTemps = this.$store.state.OpenWeatherApi.hourlyWeather;
-		this.arrayIcons = this.$store.state.OpenWeatherApi.images;
+		this.images = this.$store.state.OpenWeatherApi.imagePath;
 	},
 	computed: {
 		// 마커를 선택했을 때, 레이아웃에 보여지는 도시이름
@@ -95,13 +94,37 @@ export default {
 		
 		// 현재 시간에 따른 현재온도데이터
 		currentTemp() {
-			
+			const { currentTemp } = this.$store.state.OpenWeatherApi.currentWeahter;
+			return currentTemp;
+		},
+		arrayTemps() {
+			return this.$store.state.OpenWeatherApi.hourlyWeather;
+		},
+		TemporaryData() {
+			const { currentHumidity, currentWindSpeed, currentFeelsLike } = this.$store.state.OpenWeatherApi.currentWeahter;
+			return [
+				{
+					title: "습도",
+					value: currentHumidity + "%"
+				},
+				{
+					title: "풍속",
+					value: currentWindSpeed + "m/s"
+				},
+				{
+					title: "체감온도",
+					value: Math.round(currentFeelsLike) + "도"
+				},
+			]
+		},
+		images() {
+			return this.$store.state.OpenWeatherApi.images;
 		}
 	},
 	methods: {
 		Unix_timestemp(dt) {
 			let date = new Date(dt * 1000);
-			let hour = "0" + date.getHours();
+			let hour = date.getHours().toString().padStart(2, "0");
 			return hour.substring(-2) + "시";
 		}
 	}
