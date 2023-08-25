@@ -15,7 +15,7 @@
     "sass-loader": "^13.3.2",
     "vue": "^3.2.13",
     "vue-router": "^4.2.4",
-    "vuex": "^4.1.0"
+    "vuex": "^4.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
@@ -48,6 +48,8 @@
     "parserOptions": {
       "parser": "babel-eslint"
     },
-    "rules": {}
+    "rules": {
+      "no-unused-vars": "off"
+    }
   }
 }

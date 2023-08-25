@@ -18,7 +18,7 @@
 					<p>{{ currentTemp }}&deg;</p>
 				</div>
 				<div class="weatherIcon">
-					<img src="@/assets/43.png" alt="MainLogo">
+					<img src="@/assets/images/43.png" alt="MainLogo">
 				</div>
 				<div class="weatherData">
 					<div v-for="Temporary in TemporaryData" :key="Temporary.title" class="detailData">
@@ -37,18 +37,18 @@
 			<div class="timelyWeatherBox">
 				<div class="timelyWeather" v-for="(temp, index) in arrayTemps" :key="index">
 					<div class="icon">
-						<img src="@/assets/29.png" alt="#">
+						<img src="@/assets/images/29.png" alt="#">
 					</div>
 					<div class="data">
-					<p class="time">{{ Unix_timestemp(temp.dt) }}</p>
-					<p class="currentDegree">{{ Math.round(temp.temp) }}&deg;</p>
-					<div>
-						<img src="@/assets/drop.png" alt="#">
-						<p class="fall">{{ temp.humidity }}%</p>
+						<p class="time">{{ Unix_timestemp(temp.dt) }}</p>
+						<p class="currentDegree">{{ Math.round(temp.temp) }}&deg;</p>
+						<div>
+							<img src="@/assets/images/drop.png" alt="#">
+							<p class="fall">{{ temp.humidity }}%</p>
+						</div>
 					</div>
 				</div>
-				</div>
-				
+
 			</div>
 		</div>
 		<nav>
@@ -71,69 +71,38 @@ export default {
 		return {
 			//현재 시간을 나타내기 위한 Day.js 플러그인 사용
 			currentTime: dayjs().format("YYYY, MM, DD ddd"),
-			//현재 시간에 따른 온도 데이터
-			currentTemp: '',
-
-			//상세 날씨 데이터를 받아주는 데이터 할당
-			arrayTemps: [],
-			icons: [],
-			cityName: "",
-
-			//임시데이터
-			TemporaryData: [
-				{
-					title: '습도',
-					value: "88%"
-				},
-				{
-					title: '풍속',
-					value: "10m/s"
-				},
-				{
-					title: '체감온도',
-					value: "WS"
-				}
-			]
 		}
 	},
-	created() {
-		//초기화하여 선언을 위한 코드 작성
-		//https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={API key}
-		const API_KEY = "6d33883aede182590de63214808976ce";
-		let initialLat = 37.566826,
-			initialLon = 126.9786567;
+	async created() {
+		//초기 데이터 선언을 위한 코드 작성
+		//Vuex Store의 Mutations를 호출할 때는 commit() 메서드를 사용한다.
+		//Vuex Store의 Actice를 호출할 때는 dispatch() 메서드를 사용한다.
+		await this.$store.dispatch("OpenWeatherApi/FETCH_OPENWEATHER_API");
+		const { currentTemp, currentHumidity, currentWindSpeed, currentFeelsLike } = this.$store.state.OpenWeatherApi.currentWeahter;
 
-		//get() 메서드를 통해서 우리가 필요로하는 API 데이터를 호출한다.
-		axios
-		.get(`https://api.openweathermap.org/data/3.0/onecall?lat=${initialLat}&lon=${initialLon}&appid=${API_KEY}&units=metric`)
-		.then(response => {
-
-			let initialCityName = response.data.timezone;
-			let initialCurrentData = response.data.current;
-
-			this.cityName = initialCityName.split("/")[1]; // ['asia', 'seoul']
-
-			this.currentTemp = Math.round(initialCurrentData.temp); // 온도
-			this.TemporaryData[0].value = initialCurrentData.humidity + "%"; // 습도
-			this.TemporaryData[1].value = Math.round(initialCurrentData.wind_speed) + "m/s" // 풍속
-			this.TemporaryData[2].value = Math.round(initialCurrentData.feels_like) + "도" // 체감온도
-
-			//시간대별 날시 데이터를 제어
-			// this.arrayTemps = response.data.hourly;
-			// 24시간 데이터만 활용
-			for(let i = 0; i < 24; i++) {
-				this.arrayTemps[i] = response.data.hourly[i];
-			}
-		})
-		.catch(error => {
-			console.log(error)
-		})
+		this.currentTemp = currentTemp;
+		this.TemporaryData[0].value = currentHumidity + "%";
+		this.TemporaryData[1].value = currentWindSpeed + "m/s";
+		this.TemporaryData[2].value = currentFeelsLike + "도";
+		this.arrayTemps = this.$store.state.OpenWeatherApi.hourlyWeather;
+		this.arrayIcons = this.$store.state.OpenWeatherApi.images;
+	},
+	computed: {
+		// 마커를 선택했을 때, 레이아웃에 보여지는 도시이름
+		cityName() {
+			return this.$store.state.OpenWeatherApi.cityName;
+		},
+		
+		// 현재 시간에 따른 현재온도데이터
+		currentTemp() {
+			
+		}
 	},
 	methods: {
 		Unix_timestemp(dt) {
 			let date = new Date(dt * 1000);
 			let hour = "0" + date.getHours();
-			return hour.substr(-2) + "시";
+			return hour.substring(-2) + "시";
 		}
 	}
 }
@@ -327,7 +296,7 @@ export default {
 
 			-ms-overflow-style: none; //IE and Edge
 			scrollbar-width: none; // Firefox
-			
+
 			&::-webkit-scrollbar {
 				//chrome, Safari, Opera
 				display: none;
