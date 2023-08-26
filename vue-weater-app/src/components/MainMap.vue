@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import MapPositions from '@/assets/map-positions.json';
+import MapPositions from '../public/assets/map-positions.json';
 
 export default {
 	data() {

@@ -37,13 +37,13 @@
 			<div class="timelyWeatherBox">
 				<div class="timelyWeather" v-for="(temp, index) in arrayTemps" :key="index">
 					<div class="icon">
-						<img src="@/assets/images/11n.png" alt="#">
+						<img :src="images[index]" alt="#">
 					</div>
 					<div class="data">
 						<p class="time">{{ Unix_timestemp(temp.dt) }}</p>
 						<p class="currentDegree">{{ Math.round(temp.temp) }}&deg;</p>
 						<div>
-							<img src="@/assets/images/drop.png" alt="#">
+							<img src="/assets/images/drop.png" alt="#">
 							<p class="fall">{{ temp.humidity }}%</p>
 						</div>
 					</div>
@@ -232,7 +232,6 @@ export default {
 				height: 60%;
 
 				img {
-					width: 168px;
 					height: 160px;
 				}
 			}

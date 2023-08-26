@@ -41,10 +41,9 @@ export default {
 			state.currentWeahter.currentHumidity = payload.humidity;
 			state.currentWeahter.currentWindSpeed = payload.wind_speed;
 			state.currentWeahter.currentFeelsLike = Math.round(payload.feels_like);
-			state.currentWeahter.currentWindSpeed = payload.wind_speed;
 			state.currentWeahter.currentSunrise = payload.sunrise;
 			state.currentWeahter.currentSunset = payload.sunset;
-			state.currentWeahter.currentVisbility = payload.visbility;
+			state.currentWeahter.currentVisbility = payload.visibility;
 		},
 		SET_TIMELY_WEATHER(state, payload) {
 			state.hourlyWeather = payload;
@@ -67,9 +66,8 @@ export default {
                 const images = new Array();
                 for (let i = 0; i < 48; i++) {
                     const weatherIcon = res.data.hourly[i].weather[0].icon;
-                    images[i] = `@/assets/images/${weatherIcon}.png`;
+                    images[i] = `/assets/images/${weatherIcon}.png`;
                 }
-				console.log(images)
 
                 context.commit('SET_IMAGEPATH', images);
                 context.commit('SET_CURRENT_WEATHER', res.data.current); // 조회하는 현재시간에 대한 날씨데이터

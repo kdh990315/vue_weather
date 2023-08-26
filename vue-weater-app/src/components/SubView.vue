@@ -46,8 +46,8 @@
 
 <script>
 import MainMap from './MainMap.vue';
-import { ref } from 'vue';
-import axios from 'axios';
+import { computed, onMounted, ref, watchEffect } from 'vue';
+import { useStore } from 'vuex';
 import dayjs from 'dayjs';
 import "dayjs/locale/ko";
 dayjs.locale("ko");
@@ -66,27 +66,36 @@ export default {
         //타임스탬프로 변환
         const Unix_timestemp = (dt) => {
             let date = new Date(dt * 1000);
-            let hour = "0"  + date.getHours().toString().padStart(2, "0");
+            let hour = "0" + date.getHours().toString().padStart(2, "0");
             return hour.substring(-2) + "시";
         }
 
         //OpenWeatherAPI 호출 함수
+        const store = useStore();
+
         const fetchOpenWeatherApi = async () => {
             //API 호출을 위한 함수 데이터
-            const API_KEY = "6d33883aede182590de63214808976ce";
-            let initialLat = 37.566826,
-                initialLon = 126.9786567;
+            // const API_KEY = "6d33883aede182590de63214808976ce";
+            // let initialLat = 37.566826,
+            //     initialLon = 126.9786567;
 
             try {
-                const res = await axios.get(`https://api.openweathermap.org/data/3.0/onecall?lat=${initialLat}&lon=${initialLon}&appid=${API_KEY}&units=metric`);
-                console.log(res)
+                await store.dispatch('OpenWeatherApi/FETCH_OPENWEATHER_API');
+                const { currentFeelsLike, currentSunrise, currentSunset, currentVisbility } = store.state.OpenWeatherApi.currentWeahter;
 
-                let isInitialData = res.data.current, //초기데이터
-                    isInitialCityName = res.data.timezone, //초기 도시이름 데이터
-                    isFeelLikeTemp = isInitialData.feels_like, //초기 체감온도 데이터
-                    isTimeOfSunrise = isInitialData.sunrise, // 일출시간 데이터
-                    isTimeOfSunSet = isInitialData.sunset, //일몰시간 데이터
-                    isLineOfSight = isInitialData.visibility; // 가시거리 데이터
+                let isInitialCityName = store.state.OpenWeatherApi.cityName; //초기 도시이름 데이터
+                let isFeelLikeTemp = computed(() => {
+                    return currentFeelsLike;
+                }); //초기 체감온도 데이터
+                let isTimeOfSunrise = computed(() => {
+                    return currentSunrise;
+                }); // 일출시간 데이터
+                let isTimeOfSunSet = computed(() => {
+                    return currentSunset;
+                }); //일몰시간 데이터
+                let isLineOfSight = computed(() => {
+                    return currentVisbility;
+                }); // 가시거리 데이터
 
                 // if(isFeelLikeTemp > 30) feelingText.value = "매우 더움";
                 // if(isFeelLikeTemp <= 30) feelingText.value = "더움";
@@ -101,11 +110,11 @@ export default {
 
                 let index = 0;
 
-                for(const point of tempPoints) {
-                    if(isFeelLikeTemp <= point) break;
+                for (const point of tempPoints) {
+                    if (isFeelLikeTemp.value <= point) break;
                     index++;
                 }
-                
+
                 feelingText.value = lavels[index];
 
 
@@ -113,22 +122,28 @@ export default {
                 //가공할 or 가공한 데이터를 가지고 새로운 배열을 생성
                 // 우리가 새로운 배열을 만들어주는 이유는 template 부분에서v-for을 좀 더 편하게 쓰기 위해서
                 let isProcessedData = [
-                    {name : "일출시간", value : Unix_timestemp(isTimeOfSunrise)},
-                    {name : "일몰시간", value : Unix_timestemp(isTimeOfSunSet)},
-                    {name : "가시거리", value : isLineOfSight.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",") + 'm'},
+                    { name: "일출시간", value: Unix_timestemp(isTimeOfSunrise.value) },
+                    { name: "일몰시간", value: Unix_timestemp(isTimeOfSunSet.value) },
+                    { name: "가시거리", value: isLineOfSight.value.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",") + 'm' },
                 ]
 
                 //데이터 할당
-                cityName.value = isInitialCityName.split("/")[1];
+                cityName.value = isInitialCityName;
                 subWeatherData.value = isProcessedData;
-                
+
             } catch (error) {
-                console.log("a")
+                console.log(error)
             }
         }
-        //함수 호출
-        fetchOpenWeatherApi();
+        watchEffect( async () => {
+            await fetchOpenWeatherApi();
+            console.log(cityName.value);
+        })
 
+        //함수 호출
+        onMounted(() => {
+            fetchOpenWeatherApi();
+        })
         return {
             currentTime,
             cityName,
@@ -218,7 +233,7 @@ export default {
                         color: white;
                     }
                 }
-            }
+            }   
         }
 
         .weatherBox {
